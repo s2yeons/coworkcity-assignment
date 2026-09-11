@@ -67,7 +67,7 @@ Docker 없이 실행하려면 `backend/.env`의 `DATABASE_URL`을 사용 가능�
 | GET | `/api/offices/regions?industry=&businessType=` | 지역별 지점 수 |
 | GET | `/api/offices/:id` | 지점 상세 |
 | GET | `/api/stats` | 랜딩 수치 (등록 가능 업종 수 · 지점 수 · 지점이 있는 지역 수, DB 기준) |
-| POST | `/api/business-registration/analyze` | 사업자등록증 이미지(multipart `file`, PNG/JPEG/WEBP ≤10MB) OCR → 필드 + 추천 조건 제안 |
+| POST | `/api/business-registration/analyze` | 사업자등록증 이미지 또는 PDF(multipart `file`, PNG/JPEG/WEBP/PDF ≤10MB) OCR → 필드 + 추천 조건 제안 |
 | POST | `/api/business-registration/analyze-sample` | `{ "sample": "individual-seoul-ecommerce" }` 샘플로 동일 분석 |
 | POST | `/api/business-registration/verify` | 사용자가 고친 등록증 정보(텍스트)로 국세청 확인·업종 매칭 재수행 (이미지 없음) |
 | GET | `/api/business-registration/samples` | 샘플 등록증 목록 (이미지는 `/samples/:file`) |

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Badge, RegistrationStatusBadge } from "@/components/office-recommendation/Badge";
 import { BUSINESS_TYPES, REGIONS, regionIdFromLabel } from "@/lib/office-recommendation/constants";
 import { RESULT_STEP, serializeState } from "@/lib/office-recommendation/search-params";
+import { PdfThumbnail, type Preview } from "./PdfThumbnail";
 import type {
   BusinessRegistrationAnalysis,
   BusinessType,
@@ -40,7 +41,7 @@ function toInput(a: BusinessRegistrationAnalysis): RegistrationFieldsInput {
 type Props = {
   analysis: BusinessRegistrationAnalysis;
   sourceLabel: string;
-  previewUrl: string | null;
+  preview: Preview | null;
   onReset: () => void;
 };
 
@@ -89,7 +90,7 @@ function VerificationStatus({ analysis }: { analysis: BusinessRegistrationAnalys
 }
 
 /** OCR 결과를 확인·수정하고 추천 조건으로 넘기는 화면 */
-export function RegistrationResult({ analysis: initial, sourceLabel, previewUrl, onReset }: Props) {
+export function RegistrationResult({ analysis: initial, sourceLabel, preview, onReset }: Props) {
   const [analysis, setAnalysis] = useState(initial);
   const { fields, suggestion, ocr } = analysis;
   const [form, setForm] = useState<RegistrationFieldsInput>(() => toInput(initial));
@@ -168,16 +169,18 @@ export function RegistrationResult({ analysis: initial, sourceLabel, previewUrl,
               <h3 id="read-heading" className="text-[15px] font-bold text-ink">읽은 정보</h3>
               <p className="mt-1 text-xs text-ink-3">틀린 곳은 고치고 다시 확인하세요</p>
             </div>
-            {previewUrl && (
+            {preview && (preview.isPdf ? (
+              <PdfThumbnail className="h-24 w-20" />
+            ) : (
               <Image
-                src={previewUrl}
+                src={preview.url}
                 alt="업로드한 사업자등록증 미리보기"
                 width={80}
                 height={113}
                 unoptimized
                 className="h-24 w-auto shrink-0 rounded-md border border-line bg-white object-contain"
               />
-            )}
+            ))}
           </div>
           <form
             id={formId}

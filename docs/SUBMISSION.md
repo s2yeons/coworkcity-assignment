@@ -143,7 +143,7 @@ AI 추천처럼 보이게 만들지 않았습니다. 사용자가 결과를 신�
 |---|---|---|
 | 이미지·추출 정보가 서버에 남음 | 메모리에서만 처리, 디스크·DB·로그에 저장하지 않음. 처리 직후 이미지 버퍼를 0으로 덮어씀. OCR 원문은 응답에 포함하지 않고 추천에 필요한 필드만 반환 | `routes/business-registration.ts`, `services/business-registration-service.ts` |
 | 오류 로그에 개인정보 유출 | 에러 핸들러가 요청 본문을 남기지 않고 오류 종류·메시지만 기록 | `lib/http.ts` |
-| Content-Type 위조로 비이미지 업로드 | 매직 바이트로 실제 형식(PNG/JPEG/WEBP) 판별, 선언 형식과 불일치 시 거부 | `lib/image-validation.ts` |
+| Content-Type 위조로 비이미지 업로드 | 매직 바이트로 실제 형식(PNG/JPEG/WEBP) 판별, 선언 형식과 불일치 시 거부. PDF는 매직 바이트로 확인 후 첫 페이지만 이미지로 변환해 동일 검증을 거침 | `lib/image-validation.ts`, `lib/pdf-conversion.ts` |
 | 디컴프레션 폭탄·CPU 고갈 | 디코딩 전에 헤더에서 픽셀 크기를 읽어 한 변 6000px·20MP 초과 차단, 파일 10MB 제한, 요청당 파일 1개 | `lib/image-validation.ts`, multer limits |
 | OCR 남용(무차별 요청) | IP당 속도 제한(429, 기본 300회/분, `OCR_RATE_LIMIT`로 조정). 운영에서는 로그인 사용자 단위로 더 낮게 | express-rate-limit |
 | 응답 캐시·프록시 저장 | `Cache-Control: no-store` | 라우트 미들웨어 |

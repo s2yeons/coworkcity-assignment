@@ -6,6 +6,7 @@ import { rateLimit } from "express-rate-limit";
 import { z } from "zod";
 import { HttpError, notFound, ok } from "../lib/http";
 import { validateImage } from "../lib/image-validation";
+import { convertPdfFirstPageToPng, isPdf } from "../lib/pdf-conversion";
 import { normalizeRegistrationFields } from "../services/business-registration-parser";
 import { analyzeRegistrationFields, analyzeRegistrationImage } from "../services/business-registration-service";
 
@@ -21,14 +22,14 @@ const router = Router();
  */
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "application/pdf"]);
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_FILE_SIZE, files: 1, fields: 0 },
   fileFilter: (_req, file, cb) => {
     if (ALLOWED_TYPES.has(file.mimetype)) cb(null, true);
-    else cb(new HttpError(400, "UNSUPPORTED_FILE_TYPE", "PNG, JPEG, WEBP 이미지만 올릴 수 있어요."));
+    else cb(new HttpError(400, "UNSUPPORTED_FILE_TYPE", "PNG, JPEG, WEBP 이미지 또는 PDF 파일만 올릴 수 있어요."));
   },
 });
 
@@ -74,26 +75,32 @@ router.use("/samples", express.static(SAMPLES_DIR, { index: false, dotfiles: "de
 router.post("/analyze", ocrLimiter, noStore, (req, res, next) => {
   upload.single("file")(req, res, async (error: unknown) => {
     const buffer = req.file?.buffer;
+    let imageBuffer: Buffer | undefined;
     try {
       if (error instanceof multer.MulterError) {
         throw new HttpError(
           error.code === "LIMIT_FILE_SIZE" ? 413 : 400,
           error.code,
-          error.code === "LIMIT_FILE_SIZE" ? "이미지는 10MB 이하로 올려주세요." : error.message,
+          error.code === "LIMIT_FILE_SIZE" ? "파일은 10MB 이하로 올려주세요." : error.message,
         );
       }
       if (error) throw error;
-      if (!req.file || !buffer) throw new HttpError(400, "VALIDATION_ERROR", "file 필드에 사업자등록증 이미지를 첨부해 주세요.");
+      if (!req.file || !buffer) throw new HttpError(400, "VALIDATION_ERROR", "file 필드에 사업자등록증 이미지 또는 PDF를 첨부해 주세요.");
 
-      const validation = validateImage(buffer, req.file.mimetype);
+      // PDF는 OCR이 직접 읽을 수 없어 첫 페이지를 이미지로 변환한 뒤, 이미지와 같은 검증·OCR 경로를 탑니다.
+      const fromPdf = isPdf(buffer);
+      imageBuffer = fromPdf ? await convertPdfFirstPageToPng(buffer) : buffer;
+
+      const validation = validateImage(imageBuffer, fromPdf ? undefined : req.file.mimetype);
       if (!validation.ok) throw new HttpError(400, validation.code, validation.message);
 
-      return ok(res, await analyzeRegistrationImage(buffer));
+      return ok(res, await analyzeRegistrationImage(imageBuffer));
     } catch (e) {
       next(e);
     } finally {
       // 개인정보가 담긴 이미지 바이트를 즉시 소거 (GC 전까지 메모리에 남지 않도록)
       buffer?.fill(0);
+      if (imageBuffer && imageBuffer !== buffer) imageBuffer.fill(0);
     }
   });
 });

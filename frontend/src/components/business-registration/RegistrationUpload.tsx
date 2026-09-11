@@ -13,9 +13,10 @@ import {
   getRegistrationSamples,
 } from "@/lib/office-recommendation/api";
 import type { BusinessRegistrationAnalysis } from "@/lib/office-recommendation/types";
+import { PdfThumbnail, type Preview } from "./PdfThumbnail";
 import { RegistrationResult } from "./RegistrationResult";
 
-const ACCEPT = "image/png,image/jpeg,image/webp";
+const ACCEPT = "image/png,image/jpeg,image/webp,application/pdf";
 const MAX_SIZE = 10 * 1024 * 1024;
 
 type Status =
@@ -27,44 +28,44 @@ type Status =
 export function RegistrationUpload() {
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [dragging, setDragging] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [preview, setPreview] = useState<Preview | null>(null);
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const samples = useApiQuery("registration-samples", (signal) => getRegistrationSamples(signal));
 
   useEffect(() => {
     return () => {
-      if (previewUrl?.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+      if (preview?.url.startsWith("blob:")) URL.revokeObjectURL(preview.url);
     };
-  }, [previewUrl]);
+  }, [preview]);
 
-  async function runAnalysis(task: () => Promise<BusinessRegistrationAnalysis>, label: string, preview: string | null) {
-    setPreviewUrl(preview);
+  async function runAnalysis(task: () => Promise<BusinessRegistrationAnalysis>, label: string, nextPreview: Preview | null) {
+    setPreview(nextPreview);
     setStatus({ kind: "analyzing", label });
     try {
       const analysis = await task();
       setStatus({ kind: "done", analysis, sourceLabel: label });
     } catch (error) {
-      setStatus({ kind: "error", error: toApiError(error), retry: () => runAnalysis(task, label, preview) });
+      setStatus({ kind: "error", error: toApiError(error), retry: () => runAnalysis(task, label, nextPreview) });
     }
   }
 
   function handleFile(file: File | undefined) {
     if (!file) return;
     if (!ACCEPT.split(",").includes(file.type)) {
-      setStatus({ kind: "error", error: new ApiError(400, "UNSUPPORTED_FILE_TYPE", "PNG, JPEG, WEBP 이미지만 올릴 수 있어요."), retry: () => inputRef.current?.click() });
+      setStatus({ kind: "error", error: new ApiError(400, "UNSUPPORTED_FILE_TYPE", "PNG, JPEG, WEBP 이미지 또는 PDF 파일만 올릴 수 있어요."), retry: () => inputRef.current?.click() });
       return;
     }
     if (file.size > MAX_SIZE) {
-      setStatus({ kind: "error", error: new ApiError(413, "LIMIT_FILE_SIZE", "이미지는 10MB 이하로 올려주세요."), retry: () => inputRef.current?.click() });
+      setStatus({ kind: "error", error: new ApiError(413, "LIMIT_FILE_SIZE", "파일은 10MB 이하로 올려주세요."), retry: () => inputRef.current?.click() });
       return;
     }
-    runAnalysis(() => analyzeRegistrationImage(file), file.name, URL.createObjectURL(file));
+    runAnalysis(() => analyzeRegistrationImage(file), file.name, { url: URL.createObjectURL(file), isPdf: file.type === "application/pdf" });
   }
 
   function reset() {
     setStatus({ kind: "idle" });
-    setPreviewUrl(null);
+    setPreview(null);
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -73,7 +74,7 @@ export function RegistrationUpload() {
       <RegistrationResult
         analysis={status.analysis}
         sourceLabel={status.sourceLabel}
-        previewUrl={previewUrl}
+        preview={preview}
         onReset={reset}
       />
     );
@@ -112,7 +113,7 @@ export function RegistrationUpload() {
             <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" strokeLinecap="round" />
           </svg>
           <span className="mt-1 text-base font-semibold text-ink">등록증 이미지를 여기에 놓거나 클릭해서 선택</span>
-          <span className="text-sm text-ink-3">PNG · JPEG · WEBP · 10MB 이하 · 등록증 전체가 보이게</span>
+          <span className="text-sm text-ink-3">PNG · JPEG · WEBP · PDF · 10MB 이하 · 등록증 전체가 보이게</span>
           <input
             ref={inputRef}
             id={inputId}
@@ -126,9 +127,11 @@ export function RegistrationUpload() {
 
         {status.kind === "analyzing" && (
           <div role="status" aria-live="polite" className="mt-4 flex items-center gap-3 rounded-xl border border-brand-100 bg-brand-50 p-4">
-            {previewUrl && (
-              <Image src={previewUrl} alt="" width={48} height={64} unoptimized className="h-16 w-12 rounded object-cover" />
-            )}
+            {preview && (preview.isPdf ? (
+              <PdfThumbnail className="h-16 w-12" />
+            ) : (
+              <Image src={preview.url} alt="" width={48} height={64} unoptimized className="h-16 w-12 rounded object-cover" />
+            ))}
             <div>
               <p className="font-medium text-brand-900">등록증을 읽는 중</p>
               <p className="text-sm text-brand-800">{status.label}</p>
@@ -184,7 +187,7 @@ export function RegistrationUpload() {
                   type="button"
                   disabled={status.kind === "analyzing"}
                   onClick={() =>
-                    runAnalysis(() => analyzeRegistrationSample(sample.id), sample.label, `${API_BASE_URL}${sample.imageUrl}`)
+                    runAnalysis(() => analyzeRegistrationSample(sample.id), sample.label, { url: `${API_BASE_URL}${sample.imageUrl}`, isPdf: false })
                   }
                   className="flex min-h-12 w-full items-center gap-3 rounded-lg border border-line bg-white p-3 text-left transition-colors hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
