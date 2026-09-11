@@ -1,0 +1,98 @@
+// 비상주사무실 추천 기능 데이터 모델
+// 필드 구성은 코워크시티 지점 상세 페이지의 "기본 정보"와 업종 안내 페이지의 등록 상태를 참고했습니다.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BusinessType {
+  INDIVIDUAL
+  CORPORATE
+}
+
+enum PriceUnit {
+  MONTH
+  YEAR
+}
+
+/// 업종 안내 페이지의 4단계 등록 상태
+/// AVAILABLE: 신청 사례 있음 / OEM_REQUIRED: OEM 계약 필요 / PERMIT_REQUIRED: 인허가 요건 확인 / UNAVAILABLE: 신청 불가
+enum IndustryRegistrationStatus {
+  AVAILABLE
+  OEM_REQUIRED
+  PERMIT_REQUIRED
+  UNAVAILABLE
+}
+
+model Industry {
+  /// URL/쿼리에 쓰는 slug (예: retail)
+  id                 String                     @id
+  name               String                     @unique
+  category           String
+  /// 사업 내용 검색용 키워드 (예: 온라인 쇼핑몰, 전자상거래)
+  keywords           String[]
+  description        String?
+  registrationStatus IndustryRegistrationStatus @default(AVAILABLE)
+  /// 등록 시 참고사항 (예: OEM 계약서 필요)
+  note               String?
+
+  offices OfficeIndustry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Office {
+  /// URL에 쓰는 slug (예: seoul-gangnam)
+  id                      String    @id
+  name                    String
+  /// 지역 라벨 (예: 서울, 경기)
+  region                  String
+  district                String
+  address                 String?
+  price                   Int
+  priceUnit               PriceUnit
+  isNonCongested          Boolean   @default(false)
+  permitAddressSupported  Boolean   @default(false)
+  siteInspectionSupported Boolean   @default(false)
+  buildingUse             String?
+  description             String?
+  /// 지도 표시용 좌표 (WGS84). 샘플 데이터는 구·동 중심 근사값
+  lat                     Float?
+  lng                     Float?
+
+  businessTypes OfficeBusinessType[]
+  /// 이 지점에서 사업자등록이 가능한 업종 (N:M)
+  industries    OfficeIndustry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([region])
+}
+
+model OfficeBusinessType {
+  officeId     String
+  businessType BusinessType
+
+  office Office @relation(fields: [officeId], references: [id], onDelete: Cascade)
+
+  @@id([officeId, businessType])
+}
+
+model OfficeIndustry {
+  officeId   String
+  industryId String
+
+  office   Office   @relation(fields: [officeId], references: [id], onDelete: Cascade)
+  industry Industry @relation(fields: [industryId], references: [id], onDelete: Cascade)
+
+  @@id([officeId, industryId])
+  @@index([industryId])
+}
