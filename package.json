@@ -1,0 +1,24 @@
+{
+  "name": "coworkcity-assignment",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n front,back -c blue,green \"npm run dev -w frontend\" \"npm run dev -w backend\"",
+    "dev:front": "npm run dev -w frontend",
+    "dev:back": "npm run dev -w backend",
+    "build": "npm run build -w backend && npm run build -w frontend",
+    "lint": "npm run lint -w frontend && npm run typecheck -w backend",
+    "test": "npm run test -w backend",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate -w backend",
+    "db:seed": "npm run db:seed -w backend",
+    "setup": "node scripts/setup.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
