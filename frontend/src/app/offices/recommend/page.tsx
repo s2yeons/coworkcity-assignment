@@ -12,7 +12,11 @@ export default function OfficeRecommendPage() {
   return (
     <main className="flex-1 bg-white text-ink">
       <PageHero
-        crumbs={[{ label: "홈", href: "/" }, { label: "비상주사무실" }, { label: "내 조건으로 찾기" }]}
+        crumbs={[
+          { label: "홈", href: "/" },
+          { label: "비상주사무실", href: "/offices/recommend" },
+          { label: "내 조건으로 찾기", href: "/offices/recommend" },
+        ]}
         title="내 사업에 맞는 비상주사무실 찾기"
         description="업종 · 사업자 유형 · 지역을 고르면 사업자등록이 가능한 지점과 추천 이유를 보여드려요."
       />

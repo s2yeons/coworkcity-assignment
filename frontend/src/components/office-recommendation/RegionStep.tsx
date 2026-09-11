@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import type { ApiQueryResult } from "@/hooks/useApiQuery";
 import { REGIONS } from "@/lib/office-recommendation/constants";
 import type { RegionCount, RegionId } from "@/lib/office-recommendation/types";
+import { CheckIcon } from "./Icons";
 
 type Props = {
   value: RegionId | null;
@@ -46,11 +47,7 @@ export function RegionStep({ value, onChange, counts }: Props) {
               )}
             >
               <span className="flex items-center gap-2 font-medium text-ink">
-                {isSelected && (
-                  <span aria-hidden="true" className="text-brand-600">
-                    ✓
-                  </span>
-                )}
+                {isSelected && <CheckIcon className="size-3.5 text-brand-600" />}
                 {region.label}
                 {isSelected && <span className="sr-only">(선택됨)</span>}
               </span>

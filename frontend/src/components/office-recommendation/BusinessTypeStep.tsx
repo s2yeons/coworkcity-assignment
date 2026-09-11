@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { BUSINESS_TYPES } from "@/lib/office-recommendation/constants";
 import type { BusinessType } from "@/lib/office-recommendation/types";
+import { CheckIcon } from "./Icons";
 
 type Props = {
   value: BusinessType | null;
@@ -36,11 +37,11 @@ export function BusinessTypeStep({ value, onChange }: Props) {
               <span
                 aria-hidden="true"
                 className={cn(
-                  "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-xs",
+                  "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border",
                   isSelected ? "border-brand-500 bg-brand-500 text-white" : "border-line-2 text-transparent",
                 )}
               >
-                ✓
+                <CheckIcon className="size-3" />
               </span>
               <span>
                 <span className="block text-lg font-semibold text-ink">{type.label}</span>

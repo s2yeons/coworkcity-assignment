@@ -7,13 +7,14 @@ import { useApiQuery } from "@/hooks/useApiQuery";
 import { searchIndustries } from "@/lib/office-recommendation/api";
 import type { Industry, IndustrySummary } from "@/lib/office-recommendation/types";
 import { RegistrationStatusBadge } from "./Badge";
+import { CheckIcon } from "./Icons";
 import { ErrorState, ListSkeleton } from "./QueryStates";
 
 type Props = {
   value: string | null;
   /** 부모가 API로 조회한 선택 업종 (note 포함). 아직 없으면 목록에서 찾아 표시합니다. */
   selectedIndustry: Industry | null;
-  onChange: (industryId: string) => void;
+  onChange: (industryId: string | null) => void;
 };
 
 /** 사용자가 실제로 입력하는 표현. 클릭하면 검색어로 들어갑니다. */
@@ -160,7 +161,7 @@ export function IndustryStep({ value, selectedIndustry, onChange }: Props) {
               <li key={industry.id}>
                 <button
                   type="button"
-                  onClick={() => onChange(industry.id)}
+                  onClick={() => onChange(isSelected ? null : industry.id)}
                   aria-pressed={isSelected}
                   className={cn(
                     "flex min-h-12 w-full items-start gap-3 rounded-xl border bg-white p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
@@ -172,13 +173,13 @@ export function IndustryStep({ value, selectedIndustry, onChange }: Props) {
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-xs",
+                      "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border",
                       isSelected
                         ? "border-brand-500 bg-brand-500 text-white"
                         : "border-line-2 text-transparent",
                     )}
                   >
-                    ✓
+                    <CheckIcon className="size-3" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-2">

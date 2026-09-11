@@ -25,7 +25,7 @@ export function StepIndicator({ current, maxReachable, onSelect }: Props) {
                 aria-current={isCurrent ? "step" : undefined}
                 className={cn(
                   "flex min-h-9 items-center gap-2 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
-                  isCurrent ? "bg-brand-500 px-3.5 py-1.5 font-bold text-white shadow-[0_4px_12px_rgba(61,143,105,0.25)]" : "px-1 sm:px-3 sm:py-1.5",
+                  isCurrent ? "bg-brand-500 px-3.5 py-1.5 font-bold text-white" : "px-1 sm:px-3 sm:py-1.5",
                   isDone && "bg-brand-50 text-brand-700 hover:bg-brand-100",
                   !isCurrent && !isDone && "text-ink-3",
                   !reachable && "cursor-not-allowed",
