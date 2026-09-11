@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+/* 코워크시티 디자인 토큰 (실제 사이트에서 확인한 값 기준) */
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", "Times New Roman", Georgia, serif;
+
+  --color-ink: #1a1a1a;
+  --color-ink-2: #4d4d4d;
+  --color-ink-3: #808080;
+  --color-line: #e6e6e6;
+  --color-line-2: #e0e0e0;
+  --color-surface: #f5f5f5;
+
+  --color-brand-50: #eef6f1;
+  --color-brand-100: #d4e8dc;
+  --color-brand-200: #b7dac6;
+  --color-brand-300: #8fc5a8;
+  --color-brand-400: #64ab88;
+  --color-brand-500: #3d8f69;
+  --color-brand-600: #2f7d59;
+  --color-brand-700: #227750;
+  --color-brand-800: #16603f;
+  --color-brand-900: #0b5030;
+
+  --color-accent: #ff6900;
+  --color-cream: #faf3e3;
+  --color-cream-2: #f5e9b8;
+
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  /* 상태 변화를 알리는 최소한의 모션 */
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --animate-fade-up: fade-up 0.45s var(--ease-out-soft) both;
+  --animate-fade-in: fade-in 0.3s ease-out both;
+  --animate-slide-down: slide-down 0.25s var(--ease-out-soft) both;
+  --animate-pop: pop 0.35s var(--ease-out-soft) both;
+  --animate-gradient-drift: gradient-drift 14s ease-in-out infinite alternate;
+  --animate-float: float 9s ease-in-out infinite;
+  --animate-float-slow: float 14s ease-in-out infinite reverse;
+  --animate-underline: underline-grow 0.5s var(--ease-out-soft) both;
+  --animate-pulse-ring: pulse-ring 2.4s ease-out infinite;
+  --animate-marquee: marquee 40s linear infinite;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-down {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pop {
+    0% { opacity: 0; transform: scale(0.96); }
+    60% { transform: scale(1.01); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes gradient-drift {
+    from { background-position: 0% 50%; }
+    to { background-position: 100% 50%; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(24px, -28px, 0) scale(1.06); }
+  }
+  @keyframes underline-grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(61, 143, 105, 0.35); }
+    70% { box-shadow: 0 0 0 12px rgba(61, 143, 105, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(61, 143, 105, 0); }
+  }
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 워드마크: 코워크시티 로고와 같은 세리프 대문자 느낌 */
+.wordmark {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* 버튼·선택 카드의 누름 반응 */
+.press {
+  transition: transform 120ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+}
+.press:active {
+  transform: scale(0.98);
+}
+
+/* 순차 등장: style="--i: n" 으로 지연 */
+.stagger {
+  animation: fade-up 0.5s var(--ease-out-soft) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* 스크롤 진입 시 등장 (Reveal 컴포넌트가 is-visible을 붙임) */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.6s var(--ease-out-soft), transform 0.6s var(--ease-out-soft);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-"], .stagger { animation: none !important; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .press, .press:active { transition: none; transform: none; }
+}
+
+/* 카카오맵 순위 마커 */
+.office-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px 9999px 9999px 4px;
+  transform: rotate(-45deg);
+  background: var(--color-brand-500);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  border: 2px solid #fff;
+  box-shadow: 0 6px 14px rgba(17, 52, 36, 0.28);
+  cursor: pointer;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+.office-pin { font-family: var(--font-sans); }
+.office-pin > span { transform: rotate(45deg); }
+.office-pin.is-emphasized { background: var(--color-brand-800); }
+.office-pin.is-active { transform: rotate(-45deg) scale(1.25); background: var(--color-ink); z-index: 5; }
+.office-pin:focus-visible { outline: 2px solid var(--color-brand-500); outline-offset: 2px; }
