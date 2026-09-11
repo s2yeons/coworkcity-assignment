@@ -58,6 +58,37 @@ const OCR_CORP = `사업자등록증
 발급사유:                                        신규
 `;
 
+/**
+ * 정부24에서 발급한 "사업자등록증명"(국세청 원본 사업자등록증과 다른 표 서식) 을
+ * tesseract.js로 실제 인식했을 때 나온 텍스트를 고정한 것.
+ * 라벨이 "상호(법인명)"·"성명(대표자)"처럼 괄호로 붙어 있고, 각 라벨이 표에서 자기 줄을 차지한다.
+ */
+const OCR_GOV24_CERTIFICATE = `사업자등록증명
+
+( 일반과세자 )
+
+발급번호                                2580-933-1183-098
+상 호 (법인명)                     패스트쓰리디(FAST 3D)
+사업자등록번호                    691-05-03211
+
+성 명 (대표자)                     임시현
+
+대표유형
+
+주민(법인)등록번호              080123-*******
+
+사업장 소재지                      광주광역시 광산구 상무대로 323-2, 1층 우측 끝(신촌동)
+개업 일                      2025년 03월 17일
+
+사업자등록일                   2025년 03월 14일
+
+업 태                  제조업 | 도매 및 소매업
+
+종 목                       3D프린팅 | 전자상거래 소매업
+
+공동사업자                    해당사항이 없습니다.
+`;
+
 /** 촬영본: 주소 줄이 라벨보다 앞에 오고, 업태/종목 사이 공백이 한 칸 */
 const OCR_PHOTO = `—     ~
 사업자등록증
@@ -188,6 +219,20 @@ describe("parseBusinessRegistration", () => {
     const f = parseBusinessRegistration("( 일반과세자 )\n등록번호 : 123-45-67891\n상   :      코워크샘플상사\n성 명:  홍길동\n");
     assert.equal(f.companyName, "코워크샘플상사");
     assert.equal(f.representative, "홍길동");
+  });
+
+  it("정부24 사업자등록증명(표 서식, 괄호로 붙은 라벨)도 필드가 서로 안 섞임", () => {
+    const f = parseBusinessRegistration(OCR_GOV24_CERTIFICATE);
+    assert.equal(f.businessNumber, "691-05-03211");
+    assert.equal(f.businessNumberValid, true);
+    assert.equal(f.businessType, "INDIVIDUAL");
+    assert.equal(f.companyName, "패스트쓰리디(FAST 3D)");
+    assert.equal(f.representative, "임시현");
+    assert.equal(f.openedAt, "2025-03-17");
+    assert.equal(f.address, "광주광역시 광산구 상무대로 323-2, 1층 우측 끝(신촌동)");
+    assert.equal(f.region, "광주");
+    assert.deepEqual(f.businessCategories, ["제조업", "도매 및 소매업"]);
+    assert.deepEqual(f.businessItems, ["3D프린팅", "전자상거래 소매업"]);
   });
 
   it("사업자등록증이 아닌 텍스트는 모두 null/빈 값", () => {

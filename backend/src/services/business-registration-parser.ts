@@ -43,16 +43,25 @@ export function formatBusinessNumber(digits: string): string {
   return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
 }
 
-/** 라벨은 글자 사이 공백을 허용하는 정규식으로 변환: "등록번호" → /등\s*록\s*번\s*호/ */
+/**
+ * 라벨은 글자 사이 공백을 허용하는 정규식으로 변환: "등록번호" → /등[ \t]*록[ \t]*번[ \t]*호/
+ * 줄바꿈(\n)은 허용하지 않습니다 — \s*를 쓰면 라벨 뒤 빈 줄까지 삼켜서, 다음 줄의 라벨을 경계로
+ * 인식하지 못하고 값에 다음 줄 전체가 붙어버리는 문제가 있었습니다.
+ */
 function label(text: string): string {
   return text
     .split("")
-    .map((ch) => (ch === " " ? "" : `${ch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*`))
+    .map((ch) => (ch === " " ? "" : `${ch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[ \\t]*`))
     .join("");
 }
 
 /** 라벨 뒤 구분자. 줄바꿈은 삼키지 않아 다음 줄의 라벨이 값으로 붙지 않게 합니다. */
 const SEP = "[:：]?[ \\t]*";
+
+/** 라벨이 텍스트 어딘가에 존재하는지만 확인 (값 유무와 무관) */
+function hasLabel(text: string, labelText: string): boolean {
+  return new RegExp(label(labelText)).test(text);
+}
 
 /** 다음 라벨이 나오기 전까지의 값. 줄바꿈은 공백으로 */
 function captureAfter(text: string, labelText: string, stopLabels: string[]): string | null {
@@ -62,6 +71,19 @@ function captureAfter(text: string, labelText: string, stopLabels: string[]): st
   if (!m) return null;
   const value = m[1].replace(/\s+/g, " ").trim();
   return value || null;
+}
+
+/** captureAfter와 같지만 줄바꿈을 보존해 줄 단위 목록으로 돌려줍니다 (한 셀에 값이 여러 줄인 표 형식용) */
+function captureLinesAfter(text: string, labelText: string, stopLabels: string[]): string[] {
+  const stop = stopLabels.map(label).join("|");
+  const re = new RegExp(`${label(labelText)}${SEP}\\n?([\\s\\S]*?)(?=\\n\\s*(?:${stop})|$)`);
+  const m = text.match(re);
+  if (!m) return [];
+  return m[1]
+    .split("\n")
+    .flatMap((line) => line.split("|"))
+    .map((line) => line.trim())
+    .filter(Boolean);
 }
 
 const REGION_RULES: Array<[RegExp, string]> = [
@@ -92,13 +114,22 @@ export function regionFromAddress(address: string | null): string | null {
 }
 
 const LABELS = [
+  "상호(법인명)",
   "상호",
   "법인명(단체명)",
   "법인명",
+  "성명(대표자)",
   "성명",
   "대표자",
+  "대표유형",
+  "발급번호",
+  "사업자등록번호",
   "법인등록번호",
+  "주민(법인)등록번호",
+  "주민등록번호",
   "개업연월일",
+  "개업일",
+  "사업자등록일",
   "사업장소재지",
   "본점소재지",
   "사업의종류",
@@ -163,7 +194,9 @@ function extractBusinessKinds(text: string): { categories: string[]; items: stri
   const items: string[] = [];
 
   // 1) "업태 : X   종목 : Y" 가 같은 줄에 있는 경우 (여러 줄 반복 가능)
-  const inline = new RegExp(`${label("업태")}${SEP}(.+?)\\s+${label("종목")}${SEP}(.+)`, "g");
+  // 연결부를 [ \t]+로 제한해 "업태"와 "종목"이 서로 다른 줄에 있을 때는 매칭되지 않게 합니다
+  // (그런 경우는 라벨이 각자 자기 줄에 있는 3번 방식이 처리합니다).
+  const inline = new RegExp(`${label("업태")}${SEP}(.+?)[ \\t]+${label("종목")}${SEP}(.+)`, "g");
   for (const m of text.matchAll(inline)) {
     const category = m[1].trim();
     const item = m[2].trim();
@@ -188,6 +221,16 @@ function extractBusinessKinds(text: string): { categories: string[]; items: stri
         items.push(line.trim());
       }
     }
+  }
+  if (categories.length > 0 || items.length > 0) return { categories, items };
+
+  // 3) "업태 종목" 헤더 없이 라벨이 각자 자기 줄에 있고, 값이 같은 셀 안에서 여러 줄로 이어지는 경우
+  //    (정부24 사업자등록증명처럼 라벨-값이 한 줄씩 나열되는 표)
+  const categoryLines = captureLinesAfter(text, "업태", LABELS);
+  const itemLines = captureLinesAfter(text, "종목", LABELS);
+  if (categoryLines.length > 0 || itemLines.length > 0) {
+    categories.push(...categoryLines);
+    items.push(...itemLines);
   }
   return { categories, items };
 }
@@ -215,16 +258,23 @@ export function parseBusinessRegistration(rawText: string): BusinessRegistration
   if (/법인사업자|법인등록번호/.test(compact)) businessType = "CORPORATE";
   else if (/일반과세자|간이과세자|면세사업자|개인사업자/.test(compact)) businessType = "INDIVIDUAL";
 
-  // 실제 서식: 개인사업자는 "상 호 / 성 명", 법인사업자는 "법인명(단체명) / 대 표 자"
-  const companyName =
-    captureAfter(text, "법인명(단체명)", LABELS) ??
-    captureAfter(text, "법인명", LABELS) ??
-    captureAfter(text, "상호", LABELS) ??
-    // 서식의 "상       호"처럼 글자 간격이 넓으면 OCR이 "호"를 놓쳐 "상 :"만 남기는 경우가 있음
-    text.match(/^\s*상\s*[:：]\s*(\S.*)$/m)?.[1]?.trim() ??
-    null;
-  const representative = captureAfter(text, "대표자", LABELS) ?? captureAfter(text, "성명", LABELS);
-  const openedRaw = captureAfter(text, "개업연월일", LABELS);
+  // 실제 서식: 개인사업자는 "상 호 / 성 명", 법인사업자는 "법인명(단체명) / 대 표 자".
+  // 정부24 "사업자등록증명"은 "상호(법인명)" / "성명(대표자)"처럼 두 라벨이 괄호로 붙어 나오는데,
+  // 이 조합을 먼저 시도하지 않으면 "법인명"/"대표자" 단독 매칭이 괄호 안 글자에 걸려 앞뒤 문장을 통째로 삼킵니다.
+  // "상호(법인명)"/"성명(대표자)" 조합 라벨이 있으면, 값이 비어 있어도 괄호 안 글자에 걸려
+  // 잘못 매칭되는 "법인명"/"대표자" 단독 검색으로 넘어가지 않습니다.
+  const companyName = hasLabel(text, "상호(법인명)")
+    ? captureAfter(text, "상호(법인명)", LABELS)
+    : captureAfter(text, "법인명(단체명)", LABELS) ??
+      captureAfter(text, "상호", LABELS) ??
+      captureAfter(text, "법인명", LABELS) ??
+      // 서식의 "상       호"처럼 글자 간격이 넓으면 OCR이 "호"를 놓쳐 "상 :"만 남기는 경우가 있음
+      text.match(/^\s*상\s*[:：]\s*(\S.*)$/m)?.[1]?.trim() ??
+      null;
+  const representative = hasLabel(text, "성명(대표자)")
+    ? captureAfter(text, "성명(대표자)", LABELS)
+    : captureAfter(text, "대표자", LABELS) ?? captureAfter(text, "성명", LABELS);
+  const openedRaw = captureAfter(text, "개업연월일", LABELS) ?? captureAfter(text, "개업일", LABELS);
   const openedMatch = openedRaw?.match(/(\d{4})\s*년?\s*(\d{1,2})\s*월?\s*(\d{1,2})/);
   const openedAt = openedMatch
     ? `${openedMatch[1]}-${openedMatch[2].padStart(2, "0")}-${openedMatch[3].padStart(2, "0")}`
