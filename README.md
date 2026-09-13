@@ -7,7 +7,7 @@
 
 ## 실행 방법
 
-필요한 것: **Node.js 20 이상, Docker Desktop** (PostgreSQL 컨테이너용)
+필요한 것: **Node.js 22 이상, Docker Desktop** (PostgreSQL 컨테이너용). TypeScript 7의 네이티브 바이너리가 Node 22 미만에서는 설치되지 않아 백엔드 빌드(`tsc`)가 실패합니다.
 
 ```bash
 npm install      # 프론트·백엔드 의존성 설치 + Prisma client 생성
@@ -83,8 +83,8 @@ curl -G http://localhost:4000/api/offices/recommend \
 ## 테스트
 
 ```bash
-npm test                       # 백엔드 unit test 43개 (추천 로직, OCR 파서, 업종 매칭, 이미지 검증, 국세청 진위확인, 검증 스키마)
-npm run test:api -w backend    # API 통합 테스트 31개 (추천 + OCR 샘플 3장 실제 인식 + 보안, 서버 + seed DB 필요)
+npm test                       # 백엔드 unit test 45개 (추천 로직, OCR 파서, 업종 매칭, 이미지 검증, 국세청 진위확인, 검증 스키마)
+npm run test:api -w backend    # API 통합 테스트 34개 (추천 + OCR 샘플 실제 인식 + PDF 업로드 + 보안, 서버 + seed DB 필요)
 npm run lint                   # 프론트 ESLint + 백엔드 타입체크
 npm run build
 ```
