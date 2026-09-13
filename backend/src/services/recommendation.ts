@@ -35,13 +35,13 @@ export type OfficeRecord = {
 export type OptionalCondition = "nonCongested" | "permitAddressSupported" | "maxPrice";
 
 /** 선택 조건 가중치. 단순하고 설명 가능하게 유지합니다. */
-export const SCORE_WEIGHTS: Record<OptionalCondition, number> = {
+const SCORE_WEIGHTS: Record<OptionalCondition, number> = {
   nonCongested: 2,
   permitAddressSupported: 2,
   maxPrice: 1,
 };
 
-export const CONDITION_LABEL: Record<OptionalCondition, string> = {
+const CONDITION_LABEL: Record<OptionalCondition, string> = {
   nonCongested: "비과밀",
   permitAddressSupported: "인허가 업종 주소지 지원",
   maxPrice: "가격 조건 충족",

@@ -1,6 +1,6 @@
 /** 카카오맵 JavaScript SDK 로더. 여러 컴포넌트가 동시에 불러도 스크립트는 한 번만 삽입합니다. */
 
-export const KAKAO_MAP_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY ?? "";
+const KAKAO_MAP_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY ?? "";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type KakaoNS = any;

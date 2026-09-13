@@ -108,16 +108,12 @@ router.post("/analyze", ocrLimiter, noStore, (req, res, next) => {
 const sampleBodySchema = z.object({ sample: z.string().min(1) });
 
 /** POST /api/business-registration/analyze-sample  { sample: "individual-seoul-ecommerce" } */
-router.post("/analyze-sample", ocrLimiter, noStore, async (req, res, next) => {
-  try {
-    const { sample } = sampleBodySchema.parse(req.body ?? {});
-    const meta = SAMPLES.find((s) => s.id === sample);
-    if (!meta) throw notFound("샘플을 찾을 수 없습니다.");
-    const image = await readFile(path.join(SAMPLES_DIR, meta.file));
-    return ok(res, await analyzeRegistrationImage(image));
-  } catch (e) {
-    next(e);
-  }
+router.post("/analyze-sample", ocrLimiter, noStore, async (req, res) => {
+  const { sample } = sampleBodySchema.parse(req.body ?? {});
+  const meta = SAMPLES.find((s) => s.id === sample);
+  if (!meta) throw notFound("샘플을 찾을 수 없습니다.");
+  const image = await readFile(path.join(SAMPLES_DIR, meta.file));
+  return ok(res, await analyzeRegistrationImage(image));
 });
 
 export default router;
@@ -137,15 +133,11 @@ const verifyBodySchema = z.object({
  * POST /api/business-registration/verify
  * OCR이 잘못 읽은 값을 사용자가 고친 뒤, 이미지 없이 텍스트만으로 국세청 확인·업종 매칭을 다시 수행합니다.
  */
-router.post("/verify", ocrLimiter, noStore, async (req, res, next) => {
-  try {
-    const body = verifyBodySchema.parse(req.body ?? {});
-    const fields = normalizeRegistrationFields({
-      ...body,
-      openedAt: body.openedAt ?? null,
-    });
-    return ok(res, await analyzeRegistrationFields(fields, null));
-  } catch (e) {
-    next(e);
-  }
+router.post("/verify", ocrLimiter, noStore, async (req, res) => {
+  const body = verifyBodySchema.parse(req.body ?? {});
+  const fields = normalizeRegistrationFields({
+    ...body,
+    openedAt: body.openedAt ?? null,
+  });
+  return ok(res, await analyzeRegistrationFields(fields, null));
 });

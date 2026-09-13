@@ -8,7 +8,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Badge, RegistrationStatusBadge } from "@/components/office-recommendation/Badge";
 import { BUSINESS_TYPES, REGIONS, regionIdFromLabel } from "@/lib/office-recommendation/constants";
-import { RESULT_STEP, serializeState } from "@/lib/office-recommendation/search-params";
+import { EMPTY_FILTERS, RESULT_STEP, serializeState } from "@/lib/office-recommendation/search-params";
 import { PdfThumbnail, type Preview } from "./PdfThumbnail";
 import type {
   BusinessRegistrationAnalysis,
@@ -128,15 +128,13 @@ export function RegistrationResult({ analysis: initial, sourceLabel, preview, on
   }
 
   const ready = Boolean(businessType && regionId && industryId);
-  const baseFilters = { nonCongested: false, permitAddressSupported: false, maxMonthlyPrice: null };
-  const targetQuery = serializeState({ industryId, businessType, regionId, ...baseFilters }, ready ? RESULT_STEP : 1);
+  const targetQuery = serializeState({ ...EMPTY_FILTERS, industryId, businessType, regionId }, ready ? RESULT_STEP : 1);
 
   const inputClass =
     "h-11 w-full rounded-lg border border-line-2 bg-white px-3 text-sm font-medium text-ink placeholder:font-normal placeholder:text-ink-3 focus:border-ink focus:outline-none";
-  const textFields: Array<{ key: "companyName" | "representative" | "address"; label: string; placeholder: string }> = [
+  const textFields: Array<{ key: "companyName" | "representative"; label: string; placeholder: string }> = [
     { key: "companyName", label: fields.businessType === "CORPORATE" ? "법인명" : "상호", placeholder: "등록증의 상호(법인명)" },
     { key: "representative", label: fields.businessType === "CORPORATE" ? "대표자" : "성명", placeholder: "대표자 성명" },
-    { key: "address", label: "사업장 소재지", placeholder: "시·도부터 입력 (예: 서울특별시 …)" },
   ];
 
   return (
@@ -204,7 +202,7 @@ export function RegistrationResult({ analysis: initial, sourceLabel, preview, on
                   />
                 </label>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {textFields.slice(0, 2).map((f) => (
+                  {textFields.map((f) => (
                     <label key={f.key} className="block">
                       <span className="mb-1 block text-xs font-medium text-ink-3">{f.label}</span>
                       <input
@@ -376,7 +374,7 @@ export function RegistrationResult({ analysis: initial, sourceLabel, preview, on
               </ul>
             )}
             <Link
-              href={`/offices/recommend?${serializeState({ industryId: null, businessType, regionId, ...baseFilters }, 1)}`}
+              href={`/offices/recommend?${serializeState({ ...EMPTY_FILTERS, businessType, regionId }, 1)}`}
               className="mt-1 inline-flex min-h-10 items-center text-xs font-semibold text-brand-700 underline-offset-2 hover:underline"
             >
               다른 업종 직접 검색하기

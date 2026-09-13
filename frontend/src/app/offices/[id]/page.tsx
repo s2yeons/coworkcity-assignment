@@ -9,6 +9,7 @@ import { getOffice } from "@/lib/office-recommendation/api";
 import { BUSINESS_TYPE_LABEL } from "@/lib/office-recommendation/constants";
 import { formatWon } from "@/lib/office-recommendation/format";
 import type { OfficeDetail } from "@/lib/office-recommendation/types";
+import { cn } from "@/lib/utils";
 
 /** 서버에서 백엔드 API를 호출합니다. 404는 notFound, 그 외 오류는 페이지 안에서 안내합니다. */
 async function loadOffice(id: string): Promise<OfficeDetail | ApiError> {
@@ -155,7 +156,10 @@ export default async function OfficeDetailPage({ params, searchParams }: PagePro
                   return (
                     <span
                       key={t}
-                      className={on ? "flex h-11 items-center justify-center rounded-lg border border-brand-500 bg-brand-50 text-sm font-bold text-brand-800" : "flex h-11 items-center justify-center rounded-lg border border-line text-sm text-ink-3 line-through"}
+                      className={cn(
+                        "flex h-11 items-center justify-center rounded-lg border text-sm",
+                        on ? "border-brand-500 bg-brand-50 font-bold text-brand-800" : "border-line text-ink-3 line-through",
+                      )}
                     >
                       {t === "INDIVIDUAL" ? "개인" : "법인"}
                     </span>
@@ -168,7 +172,10 @@ export default async function OfficeDetailPage({ params, searchParams }: PagePro
                 {(["YEAR", "MONTH"] as const).map((u) => (
                   <span
                     key={u}
-                    className={office.priceUnit === u ? "flex h-11 items-center justify-center rounded-lg border border-brand-500 bg-brand-50 text-sm font-bold text-brand-800" : "flex h-11 items-center justify-center rounded-lg border border-line text-sm text-ink-3"}
+                    className={cn(
+                      "flex h-11 items-center justify-center rounded-lg border text-sm",
+                      office.priceUnit === u ? "border-brand-500 bg-brand-50 font-bold text-brand-800" : "border-line text-ink-3",
+                    )}
                   >
                     {u === "YEAR" ? "연간" : "월간"}
                   </span>

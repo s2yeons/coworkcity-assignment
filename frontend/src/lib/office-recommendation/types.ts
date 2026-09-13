@@ -1,7 +1,7 @@
 /** 백엔드 API(/api/offices, /api/industries) 응답과 맞춘 타입 */
 
 export type BusinessType = "INDIVIDUAL" | "CORPORATE";
-export type PriceUnit = "MONTH" | "YEAR";
+type PriceUnit = "MONTH" | "YEAR";
 
 /**
  * 코워크시티 업종 안내 페이지의 4단계 등록 상태

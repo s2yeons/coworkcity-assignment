@@ -51,7 +51,7 @@ export function RegionStep({ value, onChange, counts }: Props) {
                 {region.label}
                 {isSelected && <span className="sr-only">(선택됨)</span>}
               </span>
-              <span className={cn("mt-0.5 text-xs", count > 0 ? "text-ink-3" : "text-ink-3")}>
+              <span className="mt-0.5 text-xs text-ink-3">
                 {counts.isLoading && !counts.data ? "확인 중" : counts.error ? "" : `${count}개 지점`}
               </span>
             </button>

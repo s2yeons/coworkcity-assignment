@@ -46,8 +46,7 @@ export function RecommendationResult({ filters, industry, query, backQuery, onEd
     setActiveId(id);
     document.getElementById(`office-card-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
-  const selectedConditionCount =
-    (filters.nonCongested ? 1 : 0) + (filters.permitAddressSupported ? 1 : 0) + (filters.maxMonthlyPrice !== null ? 1 : 0);
+  const selectedConditionCount = selectedConditionCountOf(filters);
   const fullyMatched = data?.items.filter((item) => item.unmetConditions.length === 0).length ?? 0;
 
   const conditionChips: Array<{ label: string; step: Step }> = [

@@ -53,11 +53,3 @@ export function warmupOcr(): void {
     .then(() => console.log("🔎 OCR worker ready"))
     .catch((error) => console.warn("OCR warmup failed (will retry on first request):", error instanceof Error ? error.message : error));
 }
-
-/** 서버 종료 시 워커 정리 (테스트에서 사용) */
-export async function terminateOcr() {
-  if (!workerPromise) return;
-  const worker = await workerPromise;
-  workerPromise = null;
-  await worker.terminate();
-}
