@@ -47,7 +47,13 @@ type Props = {
 
 /** 국세청 확인 결과를 한 줄 상태로 요약. 색은 사이트 톤(초록 / 크림+주황 / 회색)만 사용 */
 function VerificationStatus({ analysis }: { analysis: BusinessRegistrationAnalysis }) {
-  const { verification, fields, warnings } = analysis;
+  const { verification, fields, warnings, suggestion } = analysis;
+  // 지역·업종 미매칭은 해당 입력 필드 바로 아래에서 별도로 안내하므로 여기서는 중복 표시하지 않음
+  const dedupedWarnings = warnings.filter((w) => {
+    if (fields.region && !suggestion.region && w.includes("지역에는 아직 지점이 없어요")) return false;
+    if (suggestion.industries.length === 0 && w.includes("업종을 찾지 못했어요")) return false;
+    return true;
+  });
   const matched = verification.checked && verification.identity?.matched === true;
   const problem = verification.checked && (verification.identity?.matched === false || (verification.businessStatus && verification.businessStatus.code !== "01"));
 
@@ -66,7 +72,7 @@ function VerificationStatus({ analysis }: { analysis: BusinessRegistrationAnalys
       ? `${verification.businessStatus.label}${verification.businessStatus.taxType && verification.businessStatus.code ? ` · ${verification.businessStatus.taxType}` : ""}`
       : null,
     !verification.checked ? verification.summary : null,
-    ...warnings,
+    ...dedupedWarnings,
   ].filter((n): n is string => Boolean(n));
 
   return (
