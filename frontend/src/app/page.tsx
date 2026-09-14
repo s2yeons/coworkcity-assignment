@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { LiveStats } from "@/components/landing/LiveStats";
-import { HeroChips } from "@/components/landing/HeroChips";
 import { RegionMarquee } from "@/components/landing/RegionMarquee";
 import { ScrollSteps } from "@/components/landing/ScrollSteps";
 import { Reveal } from "@/components/layout/Reveal";
@@ -8,23 +7,23 @@ import { Reveal } from "@/components/layout/Reveal";
 export default function Home() {
   return (
     <main className="flex-1 bg-white">
-      {/*
-        히어로 배경: frontend/public/hero.jpeg (사용자가 지정한 사진). 파일이 없으면 초록 그라데이션만 보입니다.
-        사진 위에 짙은 초록 오버레이를 올려 흰 글자의 대비를 확보합니다.
-      */}
-      <section className="relative overflow-hidden bg-[linear-gradient(120deg,#3f8f69_0%,#5aa57f_35%,#8fc39d_70%,#5aa57f_100%)] bg-[length:200%_200%] text-white animate-gradient-drift">
+      <section className="relative overflow-hidden bg-brand-900 text-white">
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-[url('/hero.jpeg')] bg-cover bg-[center_40%] bg-no-repeat"
+          className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-size-[64px_64px] mask-[radial-gradient(ellipse_at_center,black_5%,transparent_55%)]"
         />
-        <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(100deg,rgba(11,80,48,0.80)_0%,rgba(34,119,80,0.55)_45%,rgba(34,119,80,0.15)_100%)]" />
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className="pointer-events-none absolute left-[8%] top-[16%] size-6 -rotate-6 text-white/10">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
+        </svg>
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className="pointer-events-none absolute bottom-[20%] right-[10%] size-5 rotate-12 text-white/10">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
+        </svg>
         <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 size-[420px] rounded-full bg-white/15 blur-3xl animate-float" />
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 left-1/3 size-[360px] rounded-full bg-[#f5e9b8]/20 blur-3xl animate-float-slow" />
 
-        <div className="relative mx-auto grid min-h-[560px] w-full max-w-[1280px] items-center gap-10 px-4 py-20 sm:px-6 lg:min-h-[740px] lg:grid-cols-[1.1fr_1fr] lg:px-10 lg:py-20">
-          <div>
+        <div className="relative mx-auto flex min-h-130 w-full max-w-180 flex-col items-center px-4 py-24 text-center sm:px-6 lg:min-h-155 lg:py-28">
           <p className="stagger text-sm font-semibold text-white/80" style={{ "--i": 0 } as React.CSSProperties}>비상주사무실</p>
-          <h1 className="mt-4 max-w-2xl text-[40px] font-bold leading-[1.15] tracking-[-0.03em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.12)] sm:text-[60px]">
+          <h1 className="mt-4 text-[40px] font-bold leading-[1.15] tracking-[-0.03em] sm:text-[60px]">
             <span className="stagger block" style={{ "--i": 1 } as React.CSSProperties}>조건만 입력하면</span>
             <span className="stagger block" style={{ "--i": 2 } as React.CSSProperties}>내 사업에 맞는 지점</span>
           </h1>
@@ -45,8 +44,6 @@ export default function Home() {
               사업자등록증으로 찾기
             </Link>
           </div>
-          </div>
-          <HeroChips />
         </div>
       </section>
 

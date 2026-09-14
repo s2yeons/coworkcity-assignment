@@ -38,7 +38,6 @@
   --animate-fade-in: fade-in 0.3s ease-out both;
   --animate-slide-down: slide-down 0.25s var(--ease-out-soft) both;
   --animate-pop: pop 0.35s var(--ease-out-soft) both;
-  --animate-gradient-drift: gradient-drift 14s ease-in-out infinite alternate;
   --animate-float: float 9s ease-in-out infinite;
   --animate-float-slow: float 14s ease-in-out infinite reverse;
   --animate-underline: underline-grow 0.5s var(--ease-out-soft) both;
@@ -61,10 +60,6 @@
     0% { opacity: 0; transform: scale(0.96); }
     60% { transform: scale(1.01); }
     100% { opacity: 1; transform: scale(1); }
-  }
-  @keyframes gradient-drift {
-    from { background-position: 0% 50%; }
-    to { background-position: 100% 50%; }
   }
   @keyframes float {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
