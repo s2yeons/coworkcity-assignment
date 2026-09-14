@@ -116,8 +116,6 @@ router.post("/analyze-sample", ocrLimiter, noStore, async (req, res) => {
   return ok(res, await analyzeRegistrationImage(image));
 });
 
-export default router;
-
 const verifyBodySchema = z.object({
   businessNumber: z.string().trim().max(20).nullable().optional(),
   businessType: z.enum(["INDIVIDUAL", "CORPORATE"]).nullable().optional(),
@@ -141,3 +139,5 @@ router.post("/verify", ocrLimiter, noStore, async (req, res) => {
   });
   return ok(res, await analyzeRegistrationFields(fields, null));
 });
+
+export default router;
