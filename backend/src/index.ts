@@ -12,15 +12,17 @@ import { warmupOcr } from "./services/ocr";
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
-const CLIENT_URL = process.env.CLIENT_URL ?? "http://localhost:3000";
+// 콤마로 여러 origin을 지정할 수 있습니다 (예: 배포 도메인 + Vercel 프리뷰 URL).
+const CLIENT_URLS = (process.env.CLIENT_URL ?? "http://localhost:3000")
+  .split(",")
+  .map((url) => url.trim())
+  .filter(Boolean);
 
-// 미들웨어
 // helmet: 기본 보안 헤더. 이 API는 프론트(다른 origin)에서 이미지·JSON을 가져가므로 CORP만 cross-origin으로 둡니다.
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-app.use(cors({ origin: CLIENT_URL }));
+app.use(cors({ origin: CLIENT_URLS }));
 app.use(express.json({ limit: "16kb" }));
 
-// 라우트
 app.use("/api/health", healthRouter);
 app.use("/api/industries", industriesRouter);
 app.use("/api/offices", officesRouter);
